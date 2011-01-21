@@ -9,13 +9,13 @@ T 62700 40100 5 10 1 1 0 0 1
 pageof=1
 }
 T 40100 40100 9 10 1 0 0 0 1
-Copyright (C) 2010  Black Sphere Technologies.  Licensed CC-BY-SA.
+Copyright (C) 2011  Black Sphere Technologies.  Licensed CC-BY-SA.
 C 43500 48500 1 0 0 USB_MINI_B.sym
 {
 T 43900 49950 5 10 0 0 0 0 1
 device=USB_MINI_B
 T 44500 48300 5 10 1 1 0 6 1
-refdes=J?
+refdes=J1
 T 43900 50350 5 10 0 0 0 0 1
 footprint=USB_MINI_B
 }
@@ -24,7 +24,7 @@ C 45600 52500 1 0 0 LP2981.sym
 T 47200 54000 5 10 0 0 0 0 1
 device=LP2581
 T 47100 53700 5 10 1 1 0 6 1
-refdes=U?
+refdes=U1
 T 47200 53600 5 10 0 0 0 0 1
 footprint=SOT23-5
 }
@@ -33,7 +33,7 @@ C 50600 44500 1 0 0 STM32F105TB.sym
 T 50950 51750 5 10 1 1 0 0 1
 device=STM32F105TB
 T 52900 51750 5 10 1 1 0 0 1
-refdes=U?
+refdes=U2
 T 50950 52000 5 10 0 0 0 0 1
 footprint=QFN36_6
 }
@@ -112,7 +112,7 @@ refdes=R?
 T 49400 49550 5 10 0 0 0 0 1
 device=RESISTOR
 T 48900 49350 5 8 1 1 0 3 1
-refdes=R?
+refdes=R3
 T 49450 49350 5 8 1 1 0 0 1
 value=22E
 }
@@ -152,7 +152,7 @@ refdes=R?
 T 49400 49350 5 10 0 0 0 0 1
 device=RESISTOR
 T 48900 49150 5 8 1 1 0 3 1
-refdes=R?
+refdes=R4
 T 49450 49150 5 8 1 1 0 0 1
 value=22E
 }
@@ -201,7 +201,7 @@ symversion=0.1
 T 44500 53100 5 10 0 0 90 0 1
 device=CAPACITOR
 T 44850 53150 5 8 1 1 90 3 1
-refdes=C?
+refdes=C1
 T 44300 53100 5 10 0 0 90 0 1
 symversion=0.1
 T 45200 53150 5 8 1 1 90 4 1
@@ -250,7 +250,7 @@ symversion=0.1
 T 48000 53100 5 10 0 0 90 0 1
 device=CAPACITOR
 T 48300 53150 5 8 1 1 90 4 1
-refdes=C?
+refdes=C3
 T 47800 53100 5 10 0 0 90 0 1
 symversion=0.1
 T 48700 53150 5 8 1 1 90 4 1
@@ -302,7 +302,7 @@ symversion=0.1
 T 47300 53100 5 10 0 0 90 0 1
 device=CAPACITOR
 T 47650 53150 5 8 1 1 90 3 1
-refdes=C?
+refdes=C2
 T 47100 53100 5 10 0 0 90 0 1
 symversion=0.1
 T 48000 53150 5 8 1 1 90 4 1
@@ -353,7 +353,7 @@ symversion=0.1
 T 48700 53100 5 10 0 0 90 0 1
 device=CAPACITOR
 T 49000 53150 5 8 1 1 90 4 1
-refdes=C?
+refdes=C4
 T 48500 53100 5 10 0 0 90 0 1
 symversion=0.1
 T 49400 53150 5 8 1 1 90 4 1
@@ -365,7 +365,7 @@ C 54800 46000 1 0 0 xtal-small.sym
 T 55000 46700 5 10 0 0 0 0 1
 device=CRYSTAL
 T 55050 46000 5 8 1 1 0 4 1
-refdes=X?
+refdes=X1
 T 55050 45850 5 8 1 1 0 4 1
 value=8MHz
 }
@@ -404,7 +404,7 @@ refdes=R?
 T 54300 46450 5 10 0 0 0 0 1
 device=RESISTOR
 T 53850 46250 5 8 1 1 0 3 1
-refdes=R?
+refdes=R8
 T 54150 46050 5 8 1 1 0 4 1
 value=330E
 }
@@ -442,7 +442,7 @@ refdes=R?
 T 55200 45800 5 10 0 0 0 0 1
 device=RESISTOR
 T 55050 45400 5 8 1 1 0 4 1
-refdes=R?
+refdes=R9
 T 55050 45250 5 8 1 1 0 4 1
 value=10M
 }
@@ -497,7 +497,7 @@ symversion=0.1
 T 54100 45100 5 10 0 0 90 0 1
 device=CAPACITOR
 T 54400 45150 5 8 1 1 90 4 1
-refdes=C?
+refdes=C9
 T 53900 45100 5 10 0 0 90 0 1
 symversion=0.1
 T 54800 45150 5 8 1 1 90 4 1
@@ -546,7 +546,7 @@ symversion=0.1
 T 55000 45100 5 10 0 0 90 0 1
 device=CAPACITOR
 T 55300 45150 5 8 1 1 90 4 1
-refdes=C?
+refdes=C10
 T 54800 45100 5 10 0 0 90 0 1
 symversion=0.1
 T 55700 45150 5 8 1 1 90 4 1
@@ -559,7 +559,7 @@ C 55300 47500 1 0 0 SN65HVD230.sym
 T 55600 48750 5 10 0 0 0 0 1
 device=USBLC6-2
 T 56800 48550 5 10 1 1 0 6 1
-refdes=U?
+refdes=U4
 T 55600 49150 5 10 0 0 0 0 1
 footprint=SOT666
 }
@@ -576,7 +576,7 @@ C 58000 47800 1 0 0 jumper.sym
 T 58300 48200 5 8 0 0 0 0 1
 device=JUMPER
 T 58250 48200 5 8 1 1 0 1 1
-refdes=J?
+refdes=J3
 }
 C 58200 48500 1 90 0 EMBEDDEDresistor-small.sym
 [
@@ -612,7 +612,7 @@ refdes=R?
 T 57850 48900 5 10 0 0 90 0 1
 device=RESISTOR
 T 58000 48750 5 8 1 1 90 3 1
-refdes=R?
+refdes=R7
 T 58250 48750 5 8 1 1 90 4 1
 value=120E
 }
@@ -621,7 +621,7 @@ C 61300 46400 1 0 1 DB9.sym
 T 61100 49000 5 10 0 0 0 6 1
 device=DB9
 T 60850 48700 5 10 1 1 0 3 1
-refdes=J?
+refdes=J2
 }
 N 60100 48100 59900 48100 4
 N 59900 48100 59900 47500 4
@@ -636,7 +636,7 @@ N 57700 49000 57700 48100 4
 C 49000 51400 1 0 1 led-small.sym
 {
 T 49000 51600 5 8 1 1 0 4 1
-refdes=D?
+refdes=D1
 T 48900 52000 5 10 0 0 0 6 1
 device=LED
 }
@@ -674,7 +674,7 @@ B 49600 51450 300 100 3 0 0 0 -1 -1 0 -1 -1 -1 -1 -1
 T 49900 51750 5 10 0 0 0 0 1
 device=RESISTOR
 T 49400 51550 5 8 1 1 0 3 1
-refdes=R?
+refdes=R1
 T 49950 51550 5 8 1 1 0 0 1
 value=330E
 }
@@ -683,7 +683,7 @@ N 49500 51500 49000 51500 4
 C 49000 51200 1 0 1 led-small.sym
 {
 T 49000 51400 5 8 1 1 0 4 1
-refdes=D?
+refdes=D2
 T 48900 51800 5 10 0 0 0 6 1
 device=LED
 }
@@ -721,7 +721,7 @@ B 49600 51250 300 100 3 0 0 0 -1 -1 0 -1 -1 -1 -1 -1
 T 49900 51550 5 10 0 0 0 0 1
 device=RESISTOR
 T 49400 51350 5 8 1 1 0 3 1
-refdes=R?
+refdes=R2
 T 49950 51350 5 8 1 1 0 0 1
 value=330E
 }
@@ -731,50 +731,48 @@ N 48500 51500 48300 51500 4
 N 48300 51500 48300 51100 4
 N 48500 51300 48300 51300 4
 C 48200 50800 1 0 0 gnd-1.sym
-C 55800 49100 1 0 0 EMBEDDEDresistor-small.sym
+C 55800 49400 1 0 0 EMBEDDEDresistor-small.sym
 [
-T 56200 49450 5 10 0 0 0 0 1
+T 56200 49750 5 10 0 0 0 0 1
 device=RESISTOR
-T 56050 49300 8 8 0 1 0 3 1
+T 56050 49600 8 8 0 1 0 3 1
 refdes=R?
-P 56300 49200 56200 49200 1 0 0
+P 56300 49500 56200 49500 1 0 0
 {
-T 56300 49250 5 8 0 1 0 0 1
+T 56300 49550 5 8 0 1 0 0 1
 pintype=pas
-T 56300 49250 5 8 0 1 0 0 1
+T 56300 49550 5 8 0 1 0 0 1
 pinlabel=2
-T 56300 49250 5 8 0 0 0 0 1
+T 56300 49550 5 8 0 0 0 0 1
 pinseq=2
-T 56300 49250 5 8 0 1 0 0 1
+T 56300 49550 5 8 0 1 0 0 1
 pinnumber=2
 }
-P 55800 49200 55900 49200 1 0 0
+P 55800 49500 55900 49500 1 0 0
 {
-T 55900 49250 5 8 0 1 0 0 1
+T 55900 49550 5 8 0 1 0 0 1
 pintype=pas
-T 55900 49250 5 8 0 1 0 0 1
+T 55900 49550 5 8 0 1 0 0 1
 pinlabel=1
-T 55900 49250 5 8 0 0 0 0 1
+T 55900 49550 5 8 0 0 0 0 1
 pinseq=1
-T 55900 49250 5 8 0 1 0 0 1
+T 55900 49550 5 8 0 1 0 0 1
 pinnumber=1
 }
-B 55900 49150 300 100 3 0 0 0 -1 -1 0 -1 -1 -1 -1 -1
+B 55900 49450 300 100 3 0 0 0 -1 -1 0 -1 -1 -1 -1 -1
 ]
 {
-T 56200 49450 5 10 0 0 0 0 1
+T 56200 49750 5 10 0 0 0 0 1
 device=RESISTOR
-T 56050 49300 5 8 1 1 0 3 1
-refdes=R?
-T 56050 49050 5 8 1 1 0 4 1
+T 56050 49600 5 8 1 1 0 3 1
+refdes=R6
+T 56050 49350 5 8 1 1 0 4 1
 value=10K
 }
 N 57100 48300 57300 48300 4
-N 57300 48300 57300 49200 4
-N 57300 49200 56300 49200 4
-N 53400 48500 54700 48500 4
-N 54700 48500 54700 49200 4
-N 55800 49200 54700 49200 4
+N 57300 48300 57300 49500 4
+N 57300 49500 56300 49500 4
+N 53400 49500 55800 49500 4
 N 53400 49300 53800 49300 4
 C 53700 49000 1 0 0 gnd-1.sym
 C 54400 49900 1 0 0 EMBEDDEDresistor-small.sym
@@ -811,7 +809,7 @@ refdes=R?
 T 54800 50250 5 10 0 0 0 0 1
 device=RESISTOR
 T 54650 50100 5 8 1 1 0 3 1
-refdes=R?
+refdes=R5
 T 54650 49850 5 8 1 1 0 4 1
 value=10K
 }
@@ -822,7 +820,7 @@ N 54200 50000 54200 50200 4
 C 54200 50800 1 270 0 switch-pushbutton-no.sym
 {
 T 54500 50500 5 8 1 1 270 3 1
-refdes=S?
+refdes=S1
 T 54800 50400 5 10 0 0 270 0 1
 device=SWITCH_PUSHBUTTON_NO
 }
@@ -872,7 +870,7 @@ symversion=0.1
 T 51500 53100 5 10 0 0 90 0 1
 device=CAPACITOR
 T 51800 53150 5 8 1 1 90 4 1
-refdes=C?
+refdes=C8
 T 51300 53100 5 10 0 0 90 0 1
 symversion=0.1
 T 52200 53150 5 8 1 1 90 4 1
@@ -922,7 +920,7 @@ symversion=0.1
 T 49400 53100 5 10 0 0 90 0 1
 device=CAPACITOR
 T 49700 53150 5 8 1 1 90 4 1
-refdes=C?
+refdes=C5
 T 49200 53100 5 10 0 0 90 0 1
 symversion=0.1
 T 50100 53150 5 8 1 1 90 4 1
@@ -972,7 +970,7 @@ symversion=0.1
 T 50100 53100 5 10 0 0 90 0 1
 device=CAPACITOR
 T 50400 53150 5 8 1 1 90 4 1
-refdes=C?
+refdes=C6
 T 49900 53100 5 10 0 0 90 0 1
 symversion=0.1
 T 50800 53150 5 8 1 1 90 4 1
@@ -1022,7 +1020,7 @@ symversion=0.1
 T 50800 53100 5 10 0 0 90 0 1
 device=CAPACITOR
 T 51100 53150 5 8 1 1 90 4 1
-refdes=C?
+refdes=C7
 T 50600 53100 5 10 0 0 90 0 1
 symversion=0.1
 T 51500 53150 5 8 1 1 90 4 1
@@ -1045,7 +1043,7 @@ C 46300 47800 1 0 0 USBLC6-4.sym
 T 46700 48850 5 10 0 0 0 0 1
 device=USBLC6-4
 T 47800 48700 5 10 1 1 0 6 1
-refdes=U?
+refdes=U3
 T 46700 49250 5 10 0 0 0 0 1
 footprint=SOT23-6
 }
@@ -1063,10 +1061,10 @@ N 50600 48700 49100 48700 4
 N 49100 48700 49100 47100 4
 N 49100 48000 48000 48000 4
 T 55800 40600 9 10 1 0 0 0 1
-Revision 0.1 - Draft for comment
+Revision 0.2 - First prototype for production
 T 55800 40400 9 10 1 0 0 0 1
 Drawn by: Gareth McMullin <gareth@blacksphere.co.nz>
-T 40100 42300 9 12 1 0 0 0 1
+T 40100 42600 9 12 1 0 0 0 1
 Notes:
 T 40100 42000 9 10 1 0 0 0 1
 Since USB is peripheral only, ID pin is unused and VBUS is connected to 3.3V.
@@ -1080,7 +1078,9 @@ T 40100 40800 9 10 1 0 0 0 1
 BOOT0 pin is connected PB7 so that firmware upgrade can be requested from firmware.
 T 40100 40500 9 10 1 0 0 0 1
 CAN tranciever slope control may be enabled by software on PB6.
-T 40100 56200 9 12 1 0 0 0 1
-Observations:
-T 40100 55900 9 10 1 0 0 0 1
-Only CAN2 (remapped) can be used with SystemMemory bootloader.
+N 53400 48500 53600 48500 4
+N 53600 48500 53600 47900 4
+N 53400 48700 53800 48700 4
+N 53800 48700 53800 48100 4
+T 40100 42300 9 10 1 0 0 0 1
+Connected CAN2 (remapped) to transceiver in addition to CAN1 for system memory bootloader.

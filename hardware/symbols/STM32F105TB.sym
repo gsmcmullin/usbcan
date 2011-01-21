@@ -635,7 +635,7 @@ pinseq=57
 T 4450 4150 5 8 0 0 180 1 1
 pintype=io
 T 2445 4195 9 8 1 1 0 7 1
-pinlabel=PB5
+pinlabel=CAN2_RX PB5
 }
 P 2500 4000 2800 4000 1 0 1
 {
@@ -646,7 +646,7 @@ pinseq=58
 T 4450 3950 5 8 0 0 180 1 1
 pintype=io
 T 2445 3995 9 8 1 1 0 7 1
-pinlabel=PB6
+pinlabel=CAN2_TX PB6
 }
 P 2500 3800 2800 3800 1 0 1
 {
