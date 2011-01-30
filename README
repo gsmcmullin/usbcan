@@ -1,0 +1,26 @@
+README for USBCAN
+~~~~~~~~~~~~~~~~~
+
+This project aims to create an open-source USB-CAN adapter
+which works with the Linux SocketCAN infrastructure.
+
+Currently only the first hardware prototype has been 
+designed, based on the STM32F105RC device for a direct
+implementation in contrast to the number of FT232 based
+designs out there.
+
+Firmware development will proceed when the prototypes have
+been build, but the first step will be USB support for this
+device in libopenstm32.
+
+Licensing
+~~~~~~~~~
+The hardware design is licensed under the Creative Commons
+Attributionr-ShareAlike 3.0 Unported license.
+
+The firmware will be licensed under the GNU General Public 
+License, version 3.
+
+The Linux driver will be licensed under the GNU General Public
+License, version 2.
+
