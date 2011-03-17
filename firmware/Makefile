@@ -6,7 +6,7 @@ CFLAGS = -g3 -O0 \
 	-mcpu=cortex-m3 -mthumb 
 
 LDFLAGS = -mthumb -march=armv7 -mfix-cortex-m3-ldrd -msoft-float \
-	-lopencm3_stm32 -lc -lnosys
+	-lopencm3_stm32 -lc -lnosys -nostartfiles -Wl,-T,usbcan.ld
 
 SRC = usbcan.c
 OBJ = $(SRC:.c=.o)
