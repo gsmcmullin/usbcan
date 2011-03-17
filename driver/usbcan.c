@@ -21,6 +21,9 @@
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/usb.h>
+#include <linux/netdevice.h>
+#include <linux/can.h>
+#include <linux/can/dev.h>
 
 MODULE_AUTHOR("Gareth McMullin <gareth@blacksphere.co.nz>");
 MODULE_DESCRIPTION("SocketCAN driver Black Sphere USB-CAN Adapter");
@@ -28,6 +31,8 @@ MODULE_LICENSE("GPL v2");
 
 #define USB_USBCAN_VENDOR_ID	0xCAFE
 #define USB_USBCAN_PRODUCT_ID	0xCAFE
+
+#define ECHO_SKB_MAX		10
 
 /* table of devices that work with this driver */
 static struct usb_device_id usbcan_table[] = {
@@ -37,17 +42,84 @@ static struct usb_device_id usbcan_table[] = {
 
 MODULE_DEVICE_TABLE(usb, usbcan_table);
 
+struct usbcan {
+	struct can_priv can;
+
+	struct usb_device *udev;
+	struct net_device *netdev;
+};
+
+static int usbcan_open(struct net_device *netdev)
+{
+	netif_start_queue(netdev);
+
+	return 0;
+}
+
+static int usbcan_close(struct net_device *netdev)
+{
+	netif_stop_queue(netdev);
+
+	return 0;
+}
+
+static netdev_tx_t usbcan_start_xmit(struct sk_buff *skb, struct net_device *netdev)
+{
+	netdev->trans_start = jiffies;
+
+	dev_kfree_skb(skb);
+
+	return NETDEV_TX_OK;
+}
+
+static const struct net_device_ops usbcan_netdev_ops = {
+	.ndo_open = usbcan_open,
+	.ndo_stop = usbcan_close,
+	.ndo_start_xmit = usbcan_start_xmit,
+};
+
 static int usbcan_probe(struct usb_interface *intf,
 				const struct usb_device_id *id)
 {
+	struct net_device *netdev;
+	struct usbcan *dev;
+
 	printk(KERN_INFO "%s\n", __func__);
+
+	netdev = alloc_candev(sizeof(struct usbcan), ECHO_SKB_MAX);
+	if(!netdev) {
+		dev_err(&intf->dev, "%s: Couldn't allocate candev!\n", __func__);
+		return -ENOMEM;
+	}
+
+	dev = netdev_priv(netdev);
+
+	dev->netdev = netdev;
+	dev->udev = interface_to_usbdev(intf);
+
+	usb_set_intfdata(intf, dev);
+	SET_NETDEV_DEV(netdev, &intf->dev);
+
+	netdev->netdev_ops = &usbcan_netdev_ops;
+	/* TODO: populate netdev */
+
+	register_netdev(netdev);
 
 	return 0;
 }
 
 static void usbcan_disconnect(struct usb_interface *intf)
 {
+	struct usbcan *dev = usb_get_intfdata(intf);
+
 	printk(KERN_INFO "%s\n", __func__);
+
+	usb_set_intfdata(intf, NULL);
+
+	if (dev) {
+		unregister_netdev(dev->netdev);
+		free_candev(dev->netdev);
+	}
 }
 
 static struct usb_driver usbcan_usb_driver = {
