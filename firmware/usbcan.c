@@ -26,6 +26,8 @@
 
 #include <stdlib.h>
 
+#include "../icd.h"
+
 #define LED_PORT	GPIOA
 #define LED_RED		GPIO1
 #define LED_GREEN	GPIO2
@@ -113,11 +115,16 @@ static int simple_control_callback(struct usb_setup_data *req, u8 **buf,
 	(void)len;
 	(void)complete;
 
-	if(req->bmRequestType != 0x40) 
-		return 0; /* Only accept vendor request */
+ 	/* Only accept vendor request */
+	if(req->bmRequestType != (USB_REQ_TYPE_VENDOR|USB_REQ_TYPE_INTERFACE)) 
+		return 0;
 	
+	/* Only accept request for interface 0 */
+	if(req->wIndex != 0)
+		return 0;
+
 	switch(req->bRequest) {
-	case 0x00:
+	case USBCAN_REQUEST_ON_OFF_BUS:
 		if(req->wValue & 1) {
 			gpio_clear(LED_PORT, LED_RED);
 			if (can_init(CAN1,
@@ -151,6 +158,18 @@ static int simple_control_callback(struct usb_setup_data *req, u8 **buf,
 static void usbcan_data_rx_cb(u8 ep)
 {
 	(void)ep;
+
+	char buf[64];
+	struct usbcan_msg *msg = (struct usbcan_msg *)buf;
+	int len = usbd_ep_read_packet(0x01, buf, 64);
+	if(len) { 
+		can_transmit(CAN1,
+				msg->id & USBCAN_MSG_ID_MASK,
+				msg->id & USBCAN_MSG_ID_EID,
+				msg->id & USBCAN_MSG_ID_RTR,
+				msg->dlc,
+				msg->data);
+	}
 }
 
 static void usbcan_set_config(u16 wValue)
@@ -176,7 +195,6 @@ int main(void)
 	rcc_peripheral_enable_clock(&RCC_APB2ENR, RCC_APB2ENR_IOPAEN);
 	rcc_peripheral_enable_clock(&RCC_APB2ENR, RCC_APB2ENR_IOPBEN);
 	rcc_peripheral_enable_clock(&RCC_APB1ENR, RCC_APB1ENR_CANEN);
-	rcc_peripheral_enable_clock(&RCC_APB2ENR, RCC_APB2ENR_AFIOEN);
 	AFIO_MAPR = AFIO_MAPR_CAN1_REMAP_PORTB;
 
 	/* Configure CAN pin: RX (input pull-up). */

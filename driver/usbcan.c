@@ -25,6 +25,8 @@
 #include <linux/can.h>
 #include <linux/can/dev.h>
 
+#include "../icd.h"
+
 MODULE_AUTHOR("Gareth McMullin <gareth@blacksphere.co.nz>");
 MODULE_DESCRIPTION("SocketCAN driver Black Sphere USB-CAN Adapter");
 MODULE_LICENSE("GPL v2");
@@ -52,10 +54,17 @@ struct usbcan {
 static int usbcan_open(struct net_device *netdev)
 {
 	struct usbcan *dev = netdev_priv(netdev);
+	int retval;
 
 	printk(KERN_INFO "%s\n", __func__);
-	usb_control_msg(dev->udev, usb_sndctrlpipe(dev->udev, 0),
-			0, 0x40, 1, 0, NULL, 0, 100);
+	retval = usb_control_msg(dev->udev, usb_sndctrlpipe(dev->udev, 0),
+			USBCAN_REQUEST_ON_OFF_BUS, 
+			USB_TYPE_VENDOR | USB_RECIP_INTERFACE, 
+			1, 0, NULL, 0, 100);
+
+	if(retval < 0)
+		return -EINVAL;
+
 	netif_start_queue(netdev);
 
 	return 0;
@@ -67,7 +76,9 @@ static int usbcan_close(struct net_device *netdev)
 
 	printk(KERN_INFO "%s\n", __func__);
 	usb_control_msg(dev->udev, usb_sndctrlpipe(dev->udev, 0),
-			0, 0x40, 0, 0, NULL, 0, 100);
+			USBCAN_REQUEST_ON_OFF_BUS, 
+			USB_TYPE_VENDOR | USB_RECIP_INTERFACE, 
+			0, 0, NULL, 0, 100);
 	netif_stop_queue(netdev);
 
 	return 0;
@@ -75,8 +86,22 @@ static int usbcan_close(struct net_device *netdev)
 
 static netdev_tx_t usbcan_start_xmit(struct sk_buff *skb, struct net_device *netdev)
 {
+	struct usbcan *dev = netdev_priv(netdev);
+	struct can_frame *cf = (struct can_frame *)skb->data;
+	struct usbcan_msg msg;
+
 	printk(KERN_INFO "%s\n", __func__);
 	netdev->trans_start = jiffies;
+
+	msg.id = cpu_to_le32(cf->can_id);
+	msg.dlc = cf->can_dlc;
+	memcpy(msg.data, cf->data, sizeof(msg.data));
+
+	usb_bulk_msg(dev->udev,
+			usb_sndbulkpipe(dev->udev, 1),
+			&msg,
+			sizeof(msg),
+			NULL, HZ*10);
 
 	dev_kfree_skb(skb);
 
@@ -125,6 +150,7 @@ static void usbcan_disconnect(struct usb_interface *intf)
 
 	printk(KERN_INFO "%s\n", __func__);
 
+	/* FIXME: Wait for any urb-less requests to finish. */
 	usb_set_intfdata(intf, NULL);
 
 	if (dev) {
@@ -165,3 +191,4 @@ static void __exit usbcan_exit(void)
 
 module_init(usbcan_init);
 module_exit(usbcan_exit);
+
