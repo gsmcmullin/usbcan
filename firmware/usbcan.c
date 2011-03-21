@@ -20,8 +20,15 @@
 
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
+#include <libopencm3/stm32/can.h>
 
 #include <libopencm3/usb/usbd.h>
+
+#include <stdlib.h>
+
+#define LED_PORT	GPIOA
+#define LED_RED		GPIO1
+#define LED_GREEN	GPIO2
 
 static char *get_dev_unique_id(char *s);
 
@@ -42,16 +49,34 @@ const struct usb_device_descriptor dev = {
         .bNumConfigurations = 1,
 };
 
+static const struct usb_endpoint_descriptor data_endp[] = {{
+	.bLength = USB_DT_ENDPOINT_SIZE,
+	.bDescriptorType = USB_DT_ENDPOINT,
+	.bEndpointAddress = 0x01,
+	.bmAttributes = USB_ENDPOINT_ATTR_BULK,
+	.wMaxPacketSize = 64,
+	.bInterval = 1,
+}, {
+	.bLength = USB_DT_ENDPOINT_SIZE,
+	.bDescriptorType = USB_DT_ENDPOINT,
+	.bEndpointAddress = 0x81,
+	.bmAttributes = USB_ENDPOINT_ATTR_BULK,
+	.wMaxPacketSize = 64,
+	.bInterval = 1,
+}};
+
 const struct usb_interface_descriptor iface = {
 	.bLength = USB_DT_INTERFACE_SIZE,
 	.bDescriptorType = USB_DT_INTERFACE,
 	.bInterfaceNumber = 0,
 	.bAlternateSetting = 0,
-	.bNumEndpoints = 0,
+	.bNumEndpoints = 2,
 	.bInterfaceClass = 0xFF,
 	.bInterfaceSubClass = 0,
 	.bInterfaceProtocol = 0,
 	.iInterface = 0,
+
+	.endpoint = data_endp,
 };
 
 const struct usb_interface ifaces[] = {{
@@ -91,32 +116,90 @@ static int simple_control_callback(struct usb_setup_data *req, u8 **buf,
 	if(req->bmRequestType != 0x40) 
 		return 0; /* Only accept vendor request */
 	
-	if(req->wValue & 1)
-		gpio_set(GPIOA, GPIO1);
-	else
-		gpio_clear(GPIOA, GPIO1);
+	switch(req->bRequest) {
+	case 0x00:
+		if(req->wValue & 1) {
+			gpio_clear(LED_PORT, LED_RED);
+			if (can_init(CAN1,
+				     false,	/* TTCM */
+				     true,	/* ABOM */
+				     false,	/* AWUM */
+				     false,	/* NART */
+				     false,	/* RFLM */
+				     false,	/* TXFP */
+				     CAN_BTR_SJW_1TQ,
+				     CAN_BTR_TS1_3TQ,
+				     CAN_BTR_TS2_4TQ,
+				     12))	/* BRP+1: Baud rate prescaler */
+			{
+				gpio_set(LED_PORT, LED_RED);
+				return 0;
+			}
+			gpio_set(LED_PORT, LED_GREEN);
+		} else {
+			gpio_clear(LED_PORT, LED_GREEN);
+			can_reset(CAN1);
+			gpio_set(LED_PORT, LED_RED);
+		}
+		break;
+		
+	}
 
 	return 1;
+}
+
+static void usbcan_data_rx_cb(u8 ep)
+{
+	(void)ep;
+}
+
+static void usbcan_set_config(u16 wValue)
+{
+	(void)wValue;
+
+	usbd_ep_setup(0x01, USB_ENDPOINT_ATTR_BULK, 64, usbcan_data_rx_cb);
+	usbd_ep_setup(0x82, USB_ENDPOINT_ATTR_BULK, 64, NULL);
+	usbd_ep_setup(0x83, USB_ENDPOINT_ATTR_INTERRUPT, 16, NULL);
+
+	usbd_register_control_callback(
+				USB_REQ_TYPE_VENDOR, 
+				USB_REQ_TYPE_TYPE,
+				simple_control_callback);
 }
 
 int main(void)
 {
 	rcc_clock_setup_in_hse_8mhz_out_72mhz();
 
+	rcc_peripheral_enable_clock(&RCC_APB2ENR, RCC_APB2ENR_AFIOEN);
 	rcc_peripheral_enable_clock(&RCC_AHBENR, RCC_AHBENR_OTGFSEN);
 	rcc_peripheral_enable_clock(&RCC_APB2ENR, RCC_APB2ENR_IOPAEN);
+	rcc_peripheral_enable_clock(&RCC_APB2ENR, RCC_APB2ENR_IOPBEN);
+	rcc_peripheral_enable_clock(&RCC_APB1ENR, RCC_APB1ENR_CANEN);
+	rcc_peripheral_enable_clock(&RCC_APB2ENR, RCC_APB2ENR_AFIOEN);
+	AFIO_MAPR = AFIO_MAPR_CAN1_REMAP_PORTB;
+
+	/* Configure CAN pin: RX (input pull-up). */
+	gpio_set_mode(GPIOB, GPIO_MODE_INPUT,
+		      GPIO_CNF_INPUT_PULL_UPDOWN, GPIO8);
+	gpio_set(GPIOB, GPIO8);
+
+	/* Configure CAN pin: TX. */
+	gpio_set_mode(GPIOB, GPIO_MODE_OUTPUT_50_MHZ,
+		      GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, GPIO9);
 
 	/* LED output */
-	gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_2_MHZ, 
-			GPIO_CNF_OUTPUT_PUSHPULL, GPIO1);
+	gpio_set_mode(LED_PORT, GPIO_MODE_OUTPUT_2_MHZ, 
+			GPIO_CNF_OUTPUT_PUSHPULL, LED_RED | LED_GREEN);
+	gpio_set(LED_PORT, LED_RED);
 
+	/* Reset CAN. */
+	can_reset(CAN1);
+
+	/* Initialise USB */
 	get_dev_unique_id(serial_no);
-
 	usbd_init(&stm32f107_usb_driver, &dev, &config, usb_strings);
-	usbd_register_control_callback(
-				USB_REQ_TYPE_VENDOR, 
-				USB_REQ_TYPE_TYPE,
-				simple_control_callback);
+	usbd_register_set_config_callback(usbcan_set_config);
 
 	while (1) 
 		usbd_poll();

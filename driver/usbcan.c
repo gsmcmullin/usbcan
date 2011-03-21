@@ -51,6 +51,11 @@ struct usbcan {
 
 static int usbcan_open(struct net_device *netdev)
 {
+	struct usbcan *dev = netdev_priv(netdev);
+
+	printk(KERN_INFO "%s\n", __func__);
+	usb_control_msg(dev->udev, usb_sndctrlpipe(dev->udev, 0),
+			0, 0x40, 1, 0, NULL, 0, 100);
 	netif_start_queue(netdev);
 
 	return 0;
@@ -58,6 +63,11 @@ static int usbcan_open(struct net_device *netdev)
 
 static int usbcan_close(struct net_device *netdev)
 {
+	struct usbcan *dev = netdev_priv(netdev);
+
+	printk(KERN_INFO "%s\n", __func__);
+	usb_control_msg(dev->udev, usb_sndctrlpipe(dev->udev, 0),
+			0, 0x40, 0, 0, NULL, 0, 100);
 	netif_stop_queue(netdev);
 
 	return 0;
@@ -65,6 +75,7 @@ static int usbcan_close(struct net_device *netdev)
 
 static netdev_tx_t usbcan_start_xmit(struct sk_buff *skb, struct net_device *netdev)
 {
+	printk(KERN_INFO "%s\n", __func__);
 	netdev->trans_start = jiffies;
 
 	dev_kfree_skb(skb);
