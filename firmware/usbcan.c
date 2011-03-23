@@ -20,6 +20,7 @@
 
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
+#include <libopencm3/stm32/nvic.h>
 #include <libopencm3/stm32/can.h>
 
 #include <libopencm3/usb/usbd.h>
@@ -65,6 +66,13 @@ static const struct usb_endpoint_descriptor data_endp[] = {{
 	.bmAttributes = USB_ENDPOINT_ATTR_BULK,
 	.wMaxPacketSize = 64,
 	.bInterval = 1,
+}, {
+	.bLength = USB_DT_ENDPOINT_SIZE,
+	.bDescriptorType = USB_DT_ENDPOINT,
+	.bEndpointAddress = 0x82,
+	.bmAttributes = USB_ENDPOINT_ATTR_INTERRUPT,
+	.wMaxPacketSize = 16,
+	.bInterval = 1,
 }};
 
 const struct usb_interface_descriptor iface = {
@@ -72,7 +80,7 @@ const struct usb_interface_descriptor iface = {
 	.bDescriptorType = USB_DT_INTERFACE,
 	.bInterfaceNumber = 0,
 	.bAlternateSetting = 0,
-	.bNumEndpoints = 2,
+	.bNumEndpoints = 3,
 	.bInterfaceClass = 0xFF,
 	.bInterfaceSubClass = 0,
 	.bInterfaceProtocol = 0,
@@ -142,6 +150,16 @@ static int simple_control_callback(struct usb_setup_data *req, u8 **buf,
 				gpio_set(LED_PORT, LED_RED);
 				return 0;
 			}
+			/* CAN filter 0 init: catch all */
+			can_filter_id_mask_32bit_init(CAN1,
+					0,	/* Filter ID */
+					0,	/* CAN ID */
+					0,	/* CAN ID mask */
+					0,	/* FIFO assignment */
+					true);	/* Enable the filter. */
+			/* Enable CAN RX interrupt. */
+			can_enable_irq(CAN1, CAN_IER_FMPIE0);
+
 			gpio_set(LED_PORT, LED_GREEN);
 		} else {
 			gpio_clear(LED_PORT, LED_GREEN);
@@ -177,8 +195,8 @@ static void usbcan_set_config(u16 wValue)
 	(void)wValue;
 
 	usbd_ep_setup(0x01, USB_ENDPOINT_ATTR_BULK, 64, usbcan_data_rx_cb);
-	usbd_ep_setup(0x82, USB_ENDPOINT_ATTR_BULK, 64, NULL);
-	usbd_ep_setup(0x83, USB_ENDPOINT_ATTR_INTERRUPT, 16, NULL);
+	usbd_ep_setup(0x81, USB_ENDPOINT_ATTR_BULK, 64, NULL);
+	usbd_ep_setup(0x82, USB_ENDPOINT_ATTR_INTERRUPT, 16, NULL);
 
 	usbd_register_control_callback(
 				USB_REQ_TYPE_VENDOR, 
@@ -211,6 +229,10 @@ int main(void)
 			GPIO_CNF_OUTPUT_PUSHPULL, LED_RED | LED_GREEN);
 	gpio_set(LED_PORT, LED_RED);
 
+	/* NVIC setup. */
+	nvic_enable_irq(NVIC_USB_LP_CAN_RX0_IRQ);
+	nvic_set_priority(NVIC_USB_LP_CAN_RX0_IRQ, 1);
+
 	/* Reset CAN. */
 	can_reset(CAN1);
 
@@ -221,6 +243,26 @@ int main(void)
 
 	while (1) 
 		usbd_poll();
+}
+
+void usb_lp_can_rx0_isr(void)
+{
+	struct usbcan_msg msg;
+	u32 fmi;
+	bool ext, rtr;
+
+	can_receive(CAN1, 0, false, &msg.id, &ext, &rtr, &fmi, &msg.dlc, 
+			msg.data);
+
+	if(ext)
+		msg.id |= USBCAN_MSG_ID_EID;
+
+	if(rtr)
+		msg.id |= USBCAN_MSG_ID_RTR;
+
+	usbd_ep_write_packet(0x81, &msg, sizeof(msg));
+
+	can_fifo_release(CAN1, 0);
 }
 
 static char *get_dev_unique_id(char *s) 
