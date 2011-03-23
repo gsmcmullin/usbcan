@@ -51,10 +51,40 @@ struct usbcan {
 	struct net_device *netdev;
 };
 
+static void usbcan_read_bulk_callback(struct urb *urb)
+{
+	struct usbcan *dev = urb->context;
+	struct usbcan_msg *msg = urb->transfer_buffer;
+	struct sk_buff *skb;
+	struct can_frame *cf;
+	int retval;
+
+	printk(KERN_INFO "%s\n", __func__);
+
+	/* Construct socket buffer and push up the stack */
+	skb = alloc_can_skb(dev->netdev, &cf);
+	cf->can_id = le32_to_cpu(msg->id);
+	cf->can_dlc = msg->dlc;
+	memcpy(cf->data, msg->data, 8);
+	netif_rx(skb);
+
+	/* Resubmit URB */
+	usb_fill_bulk_urb(urb, dev->udev, usb_rcvbulkpipe(dev->udev, 1),
+			  urb->transfer_buffer, 64,
+			  usbcan_read_bulk_callback, dev);
+	urb->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
+
+	retval = usb_submit_urb(urb, GFP_ATOMIC);
+	if (retval == -ENODEV)
+		netif_device_detach(dev->netdev);
+}
+
 static int usbcan_open(struct net_device *netdev)
 {
 	struct usbcan *dev = netdev_priv(netdev);
 	int retval;
+	struct urb *urb = NULL;
+	u8 *buf = NULL;
 
 	printk(KERN_INFO "%s\n", __func__);
 	retval = usb_control_msg(dev->udev, usb_sndctrlpipe(dev->udev, 0),
@@ -64,6 +94,37 @@ static int usbcan_open(struct net_device *netdev)
 
 	if(retval < 0)
 		return -EINVAL;
+
+	/* create a URB, and a buffer for it */
+	urb = usb_alloc_urb(0, GFP_KERNEL);
+	if (!urb) {
+		dev_err(netdev->dev.parent,
+			"No memory left for URBs\n");
+		return -ENOMEM;
+	}
+
+	buf = usb_alloc_coherent(dev->udev, 64, GFP_KERNEL,
+			       &urb->transfer_dma);
+	if (!buf) {
+		dev_err(netdev->dev.parent,
+			"No memory left for USB buffer\n");
+		usb_free_urb(urb);
+		return -ENOMEM;
+	}
+
+	usb_fill_bulk_urb(urb, dev->udev, usb_rcvbulkpipe(dev->udev, 1),
+			  buf, 64,
+			  usbcan_read_bulk_callback, dev);
+	urb->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
+	retval = usb_submit_urb(urb, GFP_KERNEL);
+	if (retval) {
+		if (retval == -ENODEV)
+			netif_device_detach(dev->netdev);
+
+		usb_free_coherent(dev->udev, 64, buf,
+				urb->transfer_dma);
+		return retval;
+	}
 
 	netif_start_queue(netdev);
 
