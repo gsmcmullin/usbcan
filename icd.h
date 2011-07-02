@@ -25,8 +25,12 @@
 #ifndef __USBCAN_ICD_H
 #define __USBCAN_ICD_H
 
+#define USB_USBCAN_VENDOR_ID	0xCAFE
+#define USB_USBCAN_PRODUCT_ID	0xCAFE
+
 /* USB control bRequest values */
 #define USBCAN_REQUEST_ON_OFF_BUS	0x00
+#define USBCAN_REQUEST_SET_BITTIMING	0x01
 
 struct usbcan_msg {
 	u32 id;
@@ -37,6 +41,15 @@ struct usbcan_msg {
 #define USBCAN_MSG_ID_MASK	0x1FFFFFFFUL
 #define USBCAN_MSG_ID_EID	(1UL << 31)
 #define USBCAN_MSG_ID_RTR	(1UL << 30)
+
+struct usbcan_bittiming {
+	/* Work around libopenstm32 usb problem */
+	uint32_t padding;
+	u32 brp;
+	u8 phase_seg1;
+	u8 phase_seg2;
+	u8 sjw;
+} __attribute__((packed));
 
 #endif
 

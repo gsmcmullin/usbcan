@@ -31,9 +31,6 @@ MODULE_AUTHOR("Gareth McMullin <gareth@blacksphere.co.nz>");
 MODULE_DESCRIPTION("SocketCAN driver Black Sphere USB-CAN Adapter");
 MODULE_LICENSE("GPL v2");
 
-#define USB_USBCAN_VENDOR_ID	0xCAFE
-#define USB_USBCAN_PRODUCT_ID	0xCAFE
-
 #define ECHO_SKB_MAX		10
 
 /* table of devices that work with this driver */
@@ -87,6 +84,8 @@ static int usbcan_open(struct net_device *netdev)
 	u8 *buf = NULL;
 
 	printk(KERN_INFO "%s\n", __func__);
+	open_candev(netdev);
+
 	retval = usb_control_msg(dev->udev, usb_sndctrlpipe(dev->udev, 0),
 			USBCAN_REQUEST_ON_OFF_BUS, 
 			USB_TYPE_VENDOR | USB_RECIP_INTERFACE, 
@@ -136,6 +135,8 @@ static int usbcan_close(struct net_device *netdev)
 	struct usbcan *dev = netdev_priv(netdev);
 
 	printk(KERN_INFO "%s\n", __func__);
+	close_candev(netdev);
+
 	usb_control_msg(dev->udev, usb_sndctrlpipe(dev->udev, 0),
 			USBCAN_REQUEST_ON_OFF_BUS, 
 			USB_TYPE_VENDOR | USB_RECIP_INTERFACE, 
@@ -175,6 +176,61 @@ static const struct net_device_ops usbcan_netdev_ops = {
 	.ndo_start_xmit = usbcan_start_xmit,
 };
 
+static struct can_bittiming_const usbcan_bittiming_const = {
+	.name = "usbcan",
+	.tseg1_min = 1,
+	.tseg1_max = 16,
+	.tseg2_min = 1,
+	.tseg2_max = 8,
+	.sjw_max = 4,
+	.brp_min = 1,
+	.brp_max = 1024,
+	.brp_inc = 1,
+};
+
+static int usbcan_set_bittiming(struct net_device *netdev)
+{
+	struct usbcan *dev = netdev_priv(netdev);
+	struct can_bittiming *bt = &dev->can.bittiming;
+	struct usbcan_bittiming ubt;
+
+	printk(KERN_INFO "%s\n", __func__);
+
+	ubt.brp = bt->brp;
+	ubt.phase_seg1 = bt->phase_seg1 - 1;
+	ubt.phase_seg2 = bt->phase_seg2 - 1;
+	ubt.sjw = bt->sjw - 1;
+	printk(KERN_INFO "%d %d %d %d\n", ubt.brp, ubt.phase_seg1,
+			ubt.phase_seg2, ubt.sjw);
+	usb_control_msg(dev->udev, usb_sndctrlpipe(dev->udev, 0),
+			USBCAN_REQUEST_SET_BITTIMING, 
+			USB_TYPE_VENDOR | USB_RECIP_INTERFACE, 
+			0, 0, &ubt, sizeof(ubt), 100);
+
+	return 0;
+}
+
+static int usbcan_set_mode(struct net_device *netdev, enum can_mode mode)
+{
+	struct usbcan *dev = netdev_priv(netdev);
+
+	printk(KERN_INFO "%s\n", __func__);
+
+	switch (mode) {
+	case CAN_MODE_START:
+		/* FIXME: What is this supposed to do? */
+
+		if (netif_queue_stopped(netdev))
+			netif_wake_queue(netdev);
+		break;
+
+	default:
+		return -EOPNOTSUPP;
+	}
+
+	return 0;
+}
+
 static int usbcan_probe(struct usb_interface *intf,
 				const struct usb_device_id *id)
 {
@@ -199,8 +255,12 @@ static int usbcan_probe(struct usb_interface *intf,
 
 	netdev->netdev_ops = &usbcan_netdev_ops;
 	/* TODO: populate netdev */
+	dev->can.clock.freq = 72000000UL;
+	dev->can.bittiming_const = &usbcan_bittiming_const;
+	dev->can.do_set_bittiming = usbcan_set_bittiming;
+	dev->can.do_set_mode = usbcan_set_mode;
 
-	register_netdev(netdev);
+	register_candev(netdev);
 
 	return 0;
 }
@@ -215,7 +275,7 @@ static void usbcan_disconnect(struct usb_interface *intf)
 	usb_set_intfdata(intf, NULL);
 
 	if (dev) {
-		unregister_netdev(dev->netdev);
+		unregister_candev(dev->netdev);
 		free_candev(dev->netdev);
 	}
 }

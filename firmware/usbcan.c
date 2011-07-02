@@ -26,12 +26,15 @@
 #include <libopencm3/usb/usbd.h>
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "../icd.h"
 
 #define LED_PORT	GPIOA
 #define LED_RED		GPIO1
 #define LED_GREEN	GPIO2
+
+static struct usbcan_bittiming bittiming;
 
 static char *get_dev_unique_id(char *s);
 
@@ -43,8 +46,8 @@ const struct usb_device_descriptor dev = {
         .bDeviceSubClass = 0,
         .bDeviceProtocol = 0,
         .bMaxPacketSize0 = 64,
-        .idVendor = 0xCAFE,
-        .idProduct = 0xCAFE,
+        .idVendor = USB_USBCAN_VENDOR_ID,
+        .idProduct = USB_USBCAN_PRODUCT_ID,
         .bcdDevice = 0x0200,
         .iManufacturer = 1,
         .iProduct = 2,
@@ -142,10 +145,10 @@ static int simple_control_callback(struct usb_setup_data *req, u8 **buf,
 				     false,	/* NART */
 				     false,	/* RFLM */
 				     false,	/* TXFP */
-				     CAN_BTR_SJW_1TQ,
-				     CAN_BTR_TS1_3TQ,
-				     CAN_BTR_TS2_4TQ,
-				     12))	/* BRP+1: Baud rate prescaler */
+				     bittiming.sjw << 24,
+				     bittiming.phase_seg1 << 16,
+				     bittiming.phase_seg2 << 20,
+				     bittiming.brp))	/* BRP+1: Baud rate prescaler */
 			{
 				gpio_set(LED_PORT, LED_RED);
 				return 0;
@@ -168,6 +171,12 @@ static int simple_control_callback(struct usb_setup_data *req, u8 **buf,
 		}
 		break;
 		
+	case USBCAN_REQUEST_SET_BITTIMING:
+		if(*len != sizeof(bittiming)) 
+			return 0;
+		/* Work around libopenstm32 usb problem */
+		memcpy(((char *)&bittiming) + 4, *buf, *len - 4);
+		break;
 	}
 
 	return 1;
